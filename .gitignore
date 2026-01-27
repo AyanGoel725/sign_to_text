@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+asl_env/
+
+# ML / binaries
+*.so
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Data
+*.csv
+*.zip
+*.tar
+data/
+
+# Node (just in case)
+node_modules/
+
+# OS
+.DS_Store
+
