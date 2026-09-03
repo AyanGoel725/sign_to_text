@@ -21,12 +21,12 @@ This project uses **MediaPipe Hands** for landmark detection and a **Keras neura
 sign_to_text/
 ├── collect.py          # Data collection tool - capture hand landmarks
 ├── training.py         # Train the MLP classifier
-├── test.py            # Basic real-time inference
-├── test2.py           # Advanced inference with sentence building
-├── inspect_1.py       # Data visualization and inspection
-├── test_model.h5      # Pre-trained Keras model
-├── label_encoder.pkl  # Scikit-learn label encoder
-└── requirements.txt   # Python dependencies
+├── app.py              # Real-time inference with sentence building
+├── eval.py             # Model evaluation (accuracy, confusion matrix)
+├── test_model.h5       # Pre-trained Keras model (96.78% accuracy)
+├── label_encoder.pkl   # Scikit-learn label encoder
+├── data.csv            # Training dataset (57k samples from Kaggle)
+└── requirements.txt    # Python dependencies
 ```
 
 ## Setup
@@ -65,16 +65,9 @@ pip install -r requirements.txt
 
 ### Run Real-Time Recognition
 
-**Basic inference** (single letter display):
+**Main inference app** (sentence builder - recommended):
 ```bash
-python test.py
-```
-- Shows predicted letter on video frame
-- Press **ESC** to exit
-
-**Sentence builder** (recommended):
-```bash
-python test2.py
+python app.py
 ```
 - Builds sentences letter-by-letter
 - Shows running text on screen
@@ -105,23 +98,23 @@ python training.py
 ```
 
 This will:
-- Load training data from `data.csv` (rename `sign_data.csv` → `data.csv`)
-- Train a 3-layer MLP neural network
-- Save the model as `asl_mediapipe_mlp_model.h5`
-- **Note:** You'll need to manually save the `LabelEncoder` as `label_encoder.pkl` (see Known Issues)
+- Load training data from `data.csv`
+- Train a 3-layer MLP neural network with early stopping
+- Save the model as `test_model.h5`
+- Save the label encoder as `label_encoder.pkl`
 
-### Inspect Training Data
+### Evaluate the Model
 
-Visualize collected gestures:
+To evaluate the current model (`test_model.h5`) against `data.csv`:
 
 ```bash
-python inspect_1.py
+python eval.py
 ```
 
 Generates:
-- Dataset shape and class distribution
-- Sample hand landmark plots for each letter
-- Saved as `{letter}_sample.png`
+- Overall accuracy
+- Detailed classification report (precision, recall, f1-score per class)
+- Confusion matrix (saved as `confusion_matrix.png`)
 
 ## Model Architecture
 
@@ -142,7 +135,7 @@ Dense(128, relu)
 - 80/20 train/test split
 - 10 epochs, batch size 128
 
-**Performance:** Depends on training data quality and lighting conditions
+**Performance:** The default model was trained on ~57,000 diverse images from the [Kaggle ASL Alphabet Dataset](https://www.kaggle.com/datasets/debashishsau/aslamerican-sign-language-aplhabet-dataset) and achieves **96.78% accuracy** on the test split.
 
 ## How It Works
 
@@ -154,18 +147,8 @@ Dense(128, relu)
 
 ## Known Issues
 
-1. **Feature ordering mismatch:** `collect.py`/`training.py` use grouped coordinates `[x0...x20, y0...y20, z0...z20]`, but `test.py`/`test2.py` use interleaved `[x0,y0,z0, x1,y1,z1,...]`. This will cause incorrect predictions unless fixed.
-
-2. **Label encoder not saved:** `training.py` doesn't save `label_encoder.pkl`. You'll need to add:
-   ```python
-   import pickle
-   with open("label_encoder.pkl", "wb") as f:
-       pickle.dump(encoder, f)
-   ```
-
-3. **CSV filename mismatch:** `collect.py` writes to `sign_data.csv`, but `training.py` reads `data.csv`. Rename the file before training.
-
-4. **Model filename mismatch:** `training.py` saves `asl_mediapipe_mlp_model.h5`, but inference scripts load `test_model.h5`. Rename after training.
+1. **Similar gestures:** The model can sometimes confuse visually similar gestures like `M` and `N` (M is three fingers over the thumb, N is two fingers). This mirrors real-world ASL logic but requires precise hand positioning.
+2. **CSV filename mismatch for collection:** `collect.py` writes to `sign_data.csv`, but `training.py` reads `data.csv`. Rename the file before training custom data.
 
 ## Requirements
 
