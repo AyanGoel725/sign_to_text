@@ -19,14 +19,20 @@ This project uses **MediaPipe Hands** for landmark detection and a **Keras neura
 
 ```
 sign_to_text/
-├── collect.py          # Data collection tool - capture hand landmarks
-├── training.py         # Train the MLP classifier
-├── app.py              # Real-time inference with sentence building
-├── eval.py             # Model evaluation (accuracy, confusion matrix)
-├── test_model.h5       # Pre-trained Keras model (96.78% accuracy)
-├── label_encoder.pkl   # Scikit-learn label encoder
-├── data.csv            # Training dataset (57k samples from Kaggle)
-└── requirements.txt    # Python dependencies
+├── collect.py                  # Data collection tool - capture hand landmarks
+├── training.py                 # Train the MLP classifier (random split)
+├── train_grouped.py            # Train with jump-based session grouping
+├── train_clustered.py          # Train with similarity-based clustering (recommended)
+├── app.py                      # Real-time inference with sentence building
+├── test_webcam.py              # Interactive model comparison tool
+├── eval.py                     # Model evaluation with leakage analysis
+├── test_model.h5               # Original model (96.78% accuracy, has leakage)
+├── test_model_grouped.h5       # Jump-based grouped model (96.60% accuracy, has leakage)
+├── test_model_clustered.h5     # Cluster-based model (96.26% accuracy, no leakage)
+├── label_encoder.pkl           # Scikit-learn label encoder
+├── data.csv                    # Training dataset (57k samples from Kaggle)
+├── cluster_statistics.csv      # Per-class cluster distribution
+└── requirements.txt            # Python dependencies
 ```
 
 ## Setup
@@ -112,9 +118,27 @@ python eval.py
 ```
 
 Generates:
-- Overall accuracy
-- Detailed classification report (precision, recall, f1-score per class)
-- Confusion matrix (saved as `confusion_matrix.png`)
+- Overall accuracy comparison (random vs positional split)
+- Near-duplicate leakage detection (tests for ~40% data leakage)
+- Session boundary detection via consecutive jumps
+- Per-class accuracy for weakest classes
+- Detailed classification report
+- Confusion matrix
+
+### Test Models Interactively
+
+To compare all three models with your webcam:
+
+```bash
+python test_webcam.py
+```
+
+Features:
+- Select which model to load at startup
+- Switch between models live (press **M**)
+- Shows prediction confidence percentage
+- Press **SPACE** to clear sentence
+- Press **ESC** to exit
 
 ## Model Architecture
 
@@ -135,7 +159,12 @@ Dense(128, relu)
 - 80/20 train/test split
 - 10 epochs, batch size 128
 
-**Performance:** The default model was trained on ~57,000 diverse images from the [Kaggle ASL Alphabet Dataset](https://www.kaggle.com/datasets/debashishsau/aslamerican-sign-language-aplhabet-dataset) and achieves **96.78% accuracy** on the test split.
+**Performance:** 
+- **Original model (random split):** 96.78% accuracy, but **39.52% of test samples have near-duplicates in training** due to data leakage
+- **Grouped model (jump-based):** 96.60% accuracy, but **39.34% leakage** remains
+- **Clustered model (similarity-based, recommended):** **96.26% accuracy with 0.00% leakage** — true generalization performance
+
+The default `test_model.h5` was trained on the [Kaggle ASL Alphabet Dataset](https://www.kaggle.com/datasets/debashishsau/aslamerican-sign-language-aplhabet-dataset) (~57k samples) but suffers from data leakage. **Use `test_model_clustered.h5` for production** — it was trained with proper group-aware splitting where visually similar samples (distance < 0.05) are kept entirely within train or test, never split across both.
 
 ## How It Works
 
