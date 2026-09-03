@@ -45,8 +45,10 @@ while True:
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             landmarks = []
-            for lm in hand_landmarks.landmark:
-                landmarks.extend([lm.x, lm.y, lm.z])
+            x_coords = [lm.x for lm in hand_landmarks.landmark]
+            y_coords = [lm.y for lm in hand_landmarks.landmark]
+            z_coords = [lm.z for lm in hand_landmarks.landmark]
+            landmarks = x_coords + y_coords + z_coords
 
             if len(landmarks) == model.input_shape[1]:
                 prediction = model.predict(np.array([landmarks]), verbose=0)
