@@ -32,11 +32,12 @@ sign_to_text/
 │   ├── train_grouped.py            # Train with jump-based session grouping
 │   ├── train_clustered.py          # Train with similarity-based clustering (recommended)
 │   └── eval.py                     # Model evaluation with leakage analysis
-├── api/                            # FastAPI backend (planned)
+├── api/                            # FastAPI backend
 │   └── main.py                     # REST API for inference
-├── static/                         # Frontend (planned)
+├── static/                         # Frontend web app
 │   ├── index.html                  # Web UI
-│   └── app.js                      # Frontend JS
+│   ├── app.css                     # Web UI styling
+│   └── app.js                      # Frontend JS with MediaPipe
 ├── tests/                          # Tests
 │   └── test_api.py                 # API tests
 ├── app.py                          # Real-time inference with sentence building (offline mode)
@@ -82,9 +83,40 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Run Real-Time Recognition
+### Run the Web App (Recommended)
 
-**Main inference app** (sentence builder - recommended):
+**FastAPI + Web Frontend** (real-time inference in browser):
+
+1. Start the API server:
+```bash
+uvicorn api.main:app --reload
+```
+
+2. Open http://localhost:8000/ in your browser
+
+3. Click "Start Camera" and begin signing
+
+**Features:**
+- MediaPipe Hands integration for landmark detection
+- Real-time predictions with confidence filtering (min 85%)
+- Majority-vote smoothing (5-frame buffer, 80% threshold)
+- Sentence building with `space` and `del` gestures
+- Auto-punctuation after 3s of no hand detection
+- Manual backspace and clear controls
+
+**Tuning parameters** (in `static/app.js`):
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `SMOOTHING_WINDOW` | 5 | Buffer size (frames) |
+| `SMOOTHING_THRESHOLD` | 0.80 | Majority % required (4/5) |
+| `MIN_CONFIDENCE` | 0.85 | Min confidence to enter buffer |
+| `PAUSE_BETWEEN_SIGNS` | 0.5s | Repeat-letter delay |
+
+Open the browser console to see confidence values for all predictions, including filtered ones.
+
+### Run Offline Recognition
+
+**Desktop app** (OpenCV-based sentence builder):
 ```bash
 python app.py
 ```
@@ -101,7 +133,15 @@ python app.py
 | `-` | Decrease smoothing window N |
 | `ESC` | Exit |
 
-**Prediction smoothing:** The app uses majority-vote smoothing — it keeps a rolling buffer of the last N predictions (default N=10) and only commits a letter when one prediction holds ≥70% of the buffer. Raw per-frame predictions and committed letters are printed to the console so you can see the difference.
+**Prediction smoothing:** The desktop app uses majority-vote smoothing — it keeps a rolling buffer of the last N predictions (default N=10) and only commits a letter when one prediction holds ≥70% of the buffer. Raw per-frame predictions and committed letters are printed to the console so you can see the difference.
+
+### Run API Tests
+
+```bash
+pytest tests/
+```
+
+Tests the FastAPI endpoints (`/health` and `/predict` with valid/invalid inputs) using FastAPIs `TestClient`.
 
 ### Collect Training Data
 
@@ -249,12 +289,11 @@ pip install opencv-python
 
 ## Future Improvements
 
-- [ ] Fix feature ordering bug
+- [x] FastAPI backend for web-based inference
+- [x] Web frontend with webcam capture
 - [ ] Add word-level recognition
 - [ ] Support dynamic gestures (motion-based signs)
 - [ ] Add grammar/autocorrect
-- [ ] FastAPI backend for web-based inference
-- [ ] Web frontend with webcam capture
 - [ ] Mobile app deployment
 - [ ] Docker containerization
 - [ ] Support for other sign languages
