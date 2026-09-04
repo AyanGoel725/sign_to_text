@@ -5,6 +5,7 @@ import pickle
 import tensorflow as tf
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 # --- Load model and encoder once at startup ---
@@ -51,3 +52,6 @@ def predict(body: LandmarkRequest):
     letter = encoder.inverse_transform([predicted_class])[0]
 
     return PredictionResponse(letter=letter, confidence=confidence)
+
+# Serve the frontend
+app.mount('/', StaticFiles(directory='static', html=True), name='static')
