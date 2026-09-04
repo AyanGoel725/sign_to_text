@@ -11,7 +11,9 @@ This project uses **MediaPipe Hands** for landmark detection and a **Keras neura
 - **Real-time gesture recognition** via webcam
 - **26 letter alphabet** (A-Z) recognition
 - **Special gestures**: `space` and `del` (delete)
-- **Sentence building** with prediction smoothing
+- **Sentence building** with majority-vote prediction smoothing
+- **Runtime model switching** — hot-swap between models with keyboard shortcuts
+- **Adjustable smoothing** — tune the prediction buffer size live
 - **Auto-punctuation** after pauses
 - **Data collection tool** for training custom gestures
 
@@ -19,20 +21,31 @@ This project uses **MediaPipe Hands** for landmark detection and a **Keras neura
 
 ```
 sign_to_text/
-├── collect.py                  # Data collection tool - capture hand landmarks
-├── training.py                 # Train the MLP classifier (random split)
-├── train_grouped.py            # Train with jump-based session grouping
-├── train_clustered.py          # Train with similarity-based clustering (recommended)
-├── app.py                      # Real-time inference with sentence building
-├── test_webcam.py              # Interactive model comparison tool
-├── eval.py                     # Model evaluation with leakage analysis
-├── test_model.h5               # Original model (96.78% accuracy, has leakage)
-├── test_model_grouped.h5       # Jump-based grouped model (96.60% accuracy, has leakage)
-├── test_model_clustered.h5     # Cluster-based model (96.26% accuracy, no leakage)
-├── label_encoder.pkl           # Scikit-learn label encoder
-├── data.csv                    # Training dataset (57k samples from Kaggle)
-├── cluster_statistics.csv      # Per-class cluster distribution
-└── requirements.txt            # Python dependencies
+├── model/                          # Trained model artifacts
+│   ├── test_model.h5               # Original model (96.78% accuracy, has leakage)
+│   ├── test_model_grouped.h5       # Jump-based grouped model (96.60%, has leakage)
+│   ├── test_model_clustered.h5     # Cluster-based model (96.26%, no leakage)
+│   └── label_encoder.pkl           # Scikit-learn label encoder
+├── ml/                             # Training & evaluation pipeline
+│   ├── collect.py                  # Data collection tool - capture hand landmarks
+│   ├── training.py                 # Train the MLP classifier (random split)
+│   ├── train_grouped.py            # Train with jump-based session grouping
+│   ├── train_clustered.py          # Train with similarity-based clustering (recommended)
+│   └── eval.py                     # Model evaluation with leakage analysis
+├── api/                            # FastAPI backend (planned)
+│   └── main.py                     # REST API for inference
+├── static/                         # Frontend (planned)
+│   ├── index.html                  # Web UI
+│   └── app.js                      # Frontend JS
+├── tests/                          # Tests
+│   └── test_api.py                 # API tests
+├── app.py                          # Real-time inference with sentence building (offline mode)
+├── test_webcam.py                  # Interactive model comparison tool
+├── data.csv                        # Training dataset (57k samples from Kaggle)
+├── cluster_statistics.csv          # Per-class cluster distribution
+├── Dockerfile                      # Container setup (planned)
+├── requirements.txt                # Python dependencies
+└── README.md
 ```
 
 ## Setup
@@ -79,14 +92,23 @@ python app.py
 - Shows running text on screen
 - Supports `space` and `del` gestures
 - Auto-adds period (`.`) after 3 seconds of no hand detection
-- Press **ESC** to exit
+
+**Controls:**
+| Key | Action |
+|-----|--------|
+| `1`-`9` | Switch between loaded models |
+| `+` / `=` | Increase smoothing window N |
+| `-` | Decrease smoothing window N |
+| `ESC` | Exit |
+
+**Prediction smoothing:** The app uses majority-vote smoothing — it keeps a rolling buffer of the last N predictions (default N=10) and only commits a letter when one prediction holds ≥70% of the buffer. Raw per-frame predictions and committed letters are printed to the console so you can see the difference.
 
 ### Collect Training Data
 
 To train on your own gestures or add new signs:
 
 ```bash
-python collect.py
+python ml/collect.py
 ```
 
 1. Position your hand in view of the webcam
@@ -100,21 +122,28 @@ python collect.py
 After collecting data:
 
 ```bash
-python training.py
+# Basic training (random split — may have data leakage)
+python ml/training.py
+
+# Recommended: cluster-based training (no leakage)
+python ml/train_clustered.py
+
+# Alternative: jump-based session grouping
+python ml/train_grouped.py
 ```
 
-This will:
+`training.py` will:
 - Load training data from `data.csv`
 - Train a 3-layer MLP neural network with early stopping
-- Save the model as `test_model.h5`
-- Save the label encoder as `label_encoder.pkl`
+- Save the model as `model/test_model.h5`
+- Save the label encoder as `model/label_encoder.pkl`
 
 ### Evaluate the Model
 
-To evaluate the current model (`test_model.h5`) against `data.csv`:
+To evaluate the current model against `data.csv`:
 
 ```bash
-python eval.py
+python ml/eval.py
 ```
 
 Generates:
@@ -171,13 +200,13 @@ The default `test_model.h5` was trained on the [Kaggle ASL Alphabet Dataset](htt
 1. **Hand Detection:** MediaPipe Hands detects hand landmarks (21 points per hand)
 2. **Feature Extraction:** Extract x, y, z coordinates → 63-dimensional vector
 3. **Classification:** Neural network predicts gesture class
-4. **Smoothing:** Prediction history (last 15 frames) confirms stable gestures
+4. **Smoothing:** Majority-vote over rolling buffer (last N frames, default N=10, 70% threshold) confirms stable gestures before committing
 5. **Output:** Display predicted letter or build sentence
 
 ## Known Issues
 
 1. **Similar gestures:** The model can sometimes confuse visually similar gestures like `M` and `N` (M is three fingers over the thumb, N is two fingers). This mirrors real-world ASL logic but requires precise hand positioning.
-2. **CSV filename mismatch for collection:** `collect.py` writes to `sign_data.csv`, but `training.py` reads `data.csv`. Rename the file before training custom data.
+2. **CSV filename mismatch for collection:** `ml/collect.py` writes to `sign_data.csv`, but `ml/training.py` reads `data.csv`. Rename the file before training custom data.
 
 ## Requirements
 
@@ -224,7 +253,10 @@ pip install opencv-python
 - [ ] Add word-level recognition
 - [ ] Support dynamic gestures (motion-based signs)
 - [ ] Add grammar/autocorrect
+- [ ] FastAPI backend for web-based inference
+- [ ] Web frontend with webcam capture
 - [ ] Mobile app deployment
+- [ ] Docker containerization
 - [ ] Support for other sign languages
 
 ## Contributing

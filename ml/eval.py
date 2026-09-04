@@ -22,16 +22,16 @@ X = df.iloc[:, :-1].values  # All columns except last
 y = df["label"].values
 
 # Load label encoder
-print("\n[2/5] Loading label_encoder.pkl...")
-with open("label_encoder.pkl", "rb") as f:
+print("\n[2/5] Loading model/label_encoder.pkl...")
+with open("model/label_encoder.pkl", "rb") as f:
     encoder = pickle.load(f)
 
 # Encode labels
 y_encoded = encoder.transform(y)
 
 # Load model
-print("\n[3/5] Loading test_model.h5...")
-model = tf.keras.models.load_model("test_model.h5")
+print("\n[3/5] Loading model/test_model.h5...")
+model = tf.keras.models.load_model("model/test_model.h5")
 print(f"Model input shape: {model.input_shape}")
 print(f"Model output shape: {model.output_shape}")
 

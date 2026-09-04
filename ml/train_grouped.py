@@ -102,7 +102,7 @@ history = model.fit(
 )
 
 print("\n[4/5] Saving grouped model...")
-model.save("test_model_grouped.h5")
+model.save("model/test_model_grouped.h5")
 
 # 4. Evaluation and Leakage report
 print("[5/5] Evaluating and checking leakage...")

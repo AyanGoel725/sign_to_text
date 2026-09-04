@@ -8,17 +8,17 @@ import glob as globmod
 from collections import Counter, deque
 
 # --- Model discovery & loading ---
-# Find all .h5 model files in the project root (skip .venv/).
+# Find all .h5 model files in the model/ directory.
 MODEL_PATHS = sorted(
-    p for p in globmod.glob("*.h5")
+    p for p in globmod.glob("model/*.h5")
 )
 if not MODEL_PATHS:
-    raise FileNotFoundError("No .h5 model files found in the project root.")
+    raise FileNotFoundError("No .h5 model files found in model/.")
 
 current_model_idx = 0
 model = tf.keras.models.load_model(MODEL_PATHS[current_model_idx])
 
-with open("label_encoder.pkl", "rb") as f:
+with open("model/label_encoder.pkl", "rb") as f:
     encoder = pickle.load(f)
 
 

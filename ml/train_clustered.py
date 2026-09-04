@@ -128,7 +128,7 @@ history = model.fit(
 )
 
 print("\n[5/6] Saving clustered model...")
-model.save("test_model_clustered.h5")
+model.save("model/test_model_clustered.h5")
 
 # 5. Evaluation and Leakage Check
 print("\n[6/6] Evaluating and checking leakage...")
@@ -189,7 +189,7 @@ else:
     print("❌ Significant leakage still present")
 
 print("\n" + "="*80)
-print("Cluster statistics saved. Model saved as test_model_clustered.h5")
+print("Cluster statistics saved. Model saved as model/test_model_clustered.h5")
 print("="*80)
 
 # Save cluster stats for analysis
