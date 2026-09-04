@@ -1,15 +1,46 @@
-<!-- Sign Language to Text - Frontend -->
-<!-- TODO: Implement web UI -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Language to Text</title>
+    <link rel="stylesheet" href="app.css">
 </head>
 <body>
-    <h1>Sign Language to Text</h1>
-    <p>Coming soon.</p>
+    <div class="container">
+        <header>
+            <h1>Sign Language to Text</h1>
+            <p class="subtitle">Real-time ASL recognition in your browser</p>
+        </header>
+
+        <div class="grid">
+            <div class="video-section">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas"></canvas>
+                <button id="startBtn" class="btn-primary">Start Camera</button>
+            </div>
+
+            <div class="output-section">
+                <div class="status-card">
+                    <div class="label">Buffer Status</div>
+                    <div id="bufferStatus" class="buffer-status">Ready</div>
+                </div>
+
+                <div class="sentence-card">
+                    <div class="label">Sentence</div>
+                    <div id="sentence" class="sentence">—</div>
+                    <div class="controls">
+                        <button id="backspaceBtn" class="btn-secondary">← Backspace</button>
+                        <button id="clearBtn" class="btn-secondary">Clear All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
