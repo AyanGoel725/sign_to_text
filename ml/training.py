@@ -46,9 +46,9 @@ model.fit(X_train,
           validation_split=0.2,
           callbacks=[early_stop])
 
-model.save("test_model.h5")
-print("Model saved as 'test_model.h5'")
+model.save("model/test_model.h5")
+print("Model saved as 'model/test_model.h5'")
 
-with open("label_encoder.pkl", "wb") as f:
+with open("model/label_encoder.pkl", "wb") as f:
     pickle.dump(encoder, f)
-print("Label encoder saved as 'label_encoder.pkl'")
+print("Label encoder saved as 'model/label_encoder.pkl'")

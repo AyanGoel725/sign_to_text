@@ -11,15 +11,15 @@ print("MODEL COMPARISON - Real-time Testing")
 print("="*80)
 
 # Load label encoder
-with open("label_encoder.pkl", "rb") as f:
+with open("model/label_encoder.pkl", "rb") as f:
     encoder = pickle.load(f)
 
 # Load all available models
 models = {}
 model_names = {
-    "test_model.h5": "Original (Random Split)",
-    "test_model_grouped.h5": "Grouped (Jump-based)",
-    "test_model_clustered.h5": "Clustered (No Leakage)"
+    "model/test_model.h5": "Original (Random Split)",
+    "model/test_model_grouped.h5": "Grouped (Jump-based)",
+    "model/test_model_clustered.h5": "Clustered (No Leakage)"
 }
 
 print("\nLoading models...")
