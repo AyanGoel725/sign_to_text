@@ -1,0 +1,37 @@
+# Environments
+.venv
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Git
+.git
+.git/
+.gitignore
+
+# Compiled python
+__pycache__
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Tests (not needed in production image)
+tests/
+tests
+
+# Data and training artifacts
+data.csv
+*.csv
+dataset/
+*.ipynb
+
+# IDE / OS files
+.vscode
+.vscode/
+.idea
+.idea/
+.DS_Store
